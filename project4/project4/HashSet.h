@@ -103,7 +103,7 @@ template<class T>
 bool HashSet<T>::Contains(const T &item) const
 {
     
-    int f = hash(item);
+    int f = hash(item) % (numBuckets - 0);
     for(auto t : bucketList[f]){
         if(t == item){return true;}
     }
@@ -126,7 +126,7 @@ bool HashSet<T>::Insert(const T &item)
 {
     if(Contains(item)){return false;}// it's already in there silly
 
-    int b = hash(item);
+    int b = hash(item) % (numBuckets - 0);
     
     int i = b;
     
@@ -161,7 +161,7 @@ template<class T>
 bool HashSet<T>::Remove(const T &item)
 {
     if(Contains(item)){
-        int f = hash(item);
+        int f = hash(item) % (numBuckets - 0);
         for(int k = 0; k < bucketList[f].size(); k++){
             if(bucketList[f][k] == item){bucketList[f].erase(bucketList.begin()+ k); return true;}
         }

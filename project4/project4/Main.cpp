@@ -13,11 +13,12 @@ using namespace std;
  */
 template<class T>
 void Test(vector<T> &items, HashSet<T> &set)
-{   /*
+{
 	for (T& x :items)
 	{
-		set.Insert(x);
-	}*/
+        cout << x << endl;
+		//set.Insert(x);
+	}
 	cout << "Number of items: " << set.Size() << endl;
 	cout << "Number of buckets: " << set.NumBuckets() << endl;
 	cout << "Actual load factor: " << set.GetLoad() << endl;

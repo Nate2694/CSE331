@@ -12,17 +12,20 @@ unsigned int HashA(const std::string& s)
         char b = s[1];
         char c = s[2];
         unsigned int ret = 27 * a + 28 * b + c;
+        //std::cout << ret<< std::endl;
         return ret;
     }
     else if(s.size() > 1){
         char a = s[0];
         char b = s[1];
         unsigned int ret = 27 * a + b;
+        //std::cout << ret<< std::endl;
         return ret;
     }
     else{
         char a = s[0];
         unsigned int ret = a;
+        std::cout << ret<< std::endl;
         return ret;
     }
     
