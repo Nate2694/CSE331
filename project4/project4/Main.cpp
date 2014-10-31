@@ -13,17 +13,29 @@ using namespace std;
  */
 template<class T>
 void Test(vector<T> &items, HashSet<T> &set)
-{
+{   /*
 	for (T& x :items)
 	{
 		set.Insert(x);
-	}
+	}*/
 	cout << "Number of items: " << set.Size() << endl;
 	cout << "Number of buckets: " << set.NumBuckets() << endl;
 	cout << "Actual load factor: " << set.GetLoad() << endl;
 	cout << "Max number of items in a bucket: " << set.MaxBucketSize() << endl;
 	cout << "Percent of empty buckets: " << set.PercentEmptyBuckets() << endl;
 }
+
+// Put word into hash function, get out integer
+// Use integer to determine which bucket to put in
+// Check to see if it Contains item alright
+// If so, don't insert
+// Else, insert into bucket
+// Buckets cannot exceed loadfactor given
+// If bucket.size() > loadfactor, move to next bucket
+// If size (aka num of elements) > numBuckets * loadfactor, rehash (GetLoad > 1.0)
+// Double the number of buckets
+// Reinsert Items into buckets
+// Modulus number of buckets
 
 int main(int argc, char* argv[])
 {

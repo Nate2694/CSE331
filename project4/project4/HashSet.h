@@ -1,7 +1,7 @@
 /**
  * A hash set.
  * Stub written by James Daly, 8 Oct 2014
- * Completed by [YOUR NAME]
+ * Completed by [Nathan Seifert]
  */
 #pragma once
 
@@ -11,6 +11,13 @@
 #include <algorithm>
 #include <functional>
 #include <iostream>
+#include <vector>
+#include <string>
+
+using std::vector;
+using std::string;
+using std::cout;
+using std::endl;
 
 template<class T>
 class HashSet
@@ -26,23 +33,27 @@ public:
 	double GetLoadFactor() const { return loadFactor; }
 	void DisplayItems() const { ForEach([](const T& item) { std::cout << item << std::endl; }); }
 	double GetLoad() const { return ((double)Size()) / (double)NumBuckets(); }
-	
+    
 	// Methods that you must complete
-	unsigned int NumBuckets() const { /* TODO */ return 0; }
+	unsigned int NumBuckets() const {return numBuckets;}
 	bool Contains(const T& item) const;
 	bool Insert(const T &item);
+    bool Insert2(const T &item, int b);
 	bool Remove(const T &item);
 	void Clear();
 	void ForEach(std::function<void (const T&)> func) const;
 	unsigned int MaxBucketSize() const;
 	double PercentEmptyBuckets() const;
-	
+	void Rehash(int x);
+    
 private:
-	unsigned int size;
+	unsigned int size;// total elements
+    int numBuckets;// total buckets
+    int lF; // integer form of loadFactor
 	double loadFactor;
 	std::function<unsigned int (const T&)> hash;
 	// You need some data source to store items
-	
+    vector<vector<T>> bucketList;
 	
 	// You can put any helper methods here
 };
@@ -55,8 +66,11 @@ HashSet<T>::HashSet(std::function<unsigned int(const T&)> hash, double loadFacto
 	size(0),
 	loadFactor(loadFactor),
 	hash(hash)
+
 {
-	// Empty: You can put other initialization information here
+    lF = (int) (loadFactor + .5);
+    bucketList.resize(10);
+    numBuckets = 10;
 }
 
 /**
@@ -88,8 +102,18 @@ HashSet<T>::~HashSet()
 template<class T>
 bool HashSet<T>::Contains(const T &item) const
 {
-	// TODO
-	return false;
+    
+    int f = hash(item);
+    for(auto t : bucketList[f]){
+        if(t == item){return true;}
+    }
+    //if we couldn't find it first try, might as well be meticulous about it
+    for(int i = 0; i < numBuckets; i++){
+        for(auto t : bucketList[i]){
+            if(t == item){return true;}
+        }
+    }
+    return false;
 }
 
 /**
@@ -100,8 +124,33 @@ bool HashSet<T>::Contains(const T &item) const
 template<class T>
 bool HashSet<T>::Insert(const T &item)
 {
-	// TODO
-	return false;
+    if(Contains(item)){return false;}// it's already in there silly
+
+    int b = hash(item);
+    
+    int i = b;
+    
+    while(i < numBuckets){
+        if(Insert2(item, i)){return true;}
+        i++;
+    }
+    i = 0;
+    while(i < b){
+        if(Insert2(item, i)){return true;}
+    }// if we have gotten to this point and still haven't inserted, better rehash the table.
+    
+    Rehash(numBuckets*2);
+    return Insert(item);// try again
+
+}
+
+template<class T>
+bool HashSet<T>::Insert2(const T &item, int i){
+    
+    if(bucketList[i].size() < lF){
+        bucketList[i].push_back(item); return true;
+    }
+    else{ return false;}
 }
 
 /**
@@ -111,8 +160,19 @@ bool HashSet<T>::Insert(const T &item)
 template<class T>
 bool HashSet<T>::Remove(const T &item)
 {
-	// TODO
-	return false;
+    if(Contains(item)){
+        int f = hash(item);
+        for(int k = 0; k < bucketList[f].size(); k++){
+            if(bucketList[f][k] == item){bucketList[f].erase(bucketList.begin()+ k); return true;}
+        }
+        // if we can't find it first swoop then let's try em all
+        for(int i = 0; i < numBuckets; i++){
+            for(int j = 0; j < bucketList[i].size(); j++){
+                if(bucketList[i][j] == item){bucketList[i].erase(bucketList.begin()+ j); return true;}
+            }
+        }
+    }
+    else{ return false; }
 }
 
 /**
@@ -121,7 +181,9 @@ bool HashSet<T>::Remove(const T &item)
 template<class T>
 void HashSet<T>::Clear()
 {
-	// TODO
+    for(int i = 0; i < numBuckets; i++){
+        bucketList[i].clear();
+    }
 }
 
 /**
@@ -131,7 +193,11 @@ void HashSet<T>::Clear()
 template<class T>
 void HashSet<T>::ForEach(std::function<void (const T&)> func) const
 {
-	// TODO
+    for(int i = 0; i < numBuckets; i++){
+        for(int j = 0; j < numBuckets; j++){
+            func(bucketList[i][j]);
+        }
+    }
 }
 
 /**
@@ -140,8 +206,12 @@ void HashSet<T>::ForEach(std::function<void (const T&)> func) const
 template<class T>
 unsigned int HashSet<T>::MaxBucketSize() const
 {
-	// TODO
-	return 0;
+    int maxSize = 0;
+    
+    for(int i = 0; i < numBuckets; i++){
+        if(bucketList[i].size() > maxSize){ maxSize = bucketList[i].size();}
+    }
+	return maxSize;
 }
 
 /**
@@ -151,8 +221,35 @@ unsigned int HashSet<T>::MaxBucketSize() const
 template<class T>
 double HashSet<T>::PercentEmptyBuckets() const
 {
-	// TODO
-	return 100.0;
+    int empBuks = 0;
+    
+    for(int i = 0; i < numBuckets; i++){
+        if(bucketList[i].size() == 0){empBuks++;}
+    }
+    return ( (double) empBuks / (double) numBuckets ) * 100.0  ;
+}
+
+template<class T>
+void HashSet<T>::Rehash(int x){
+    cout<< "Rehashing..."<<endl;
+    cout<< "New Size: "<< x <<endl;
+    
+    vector<T> temp;
+    
+    for(int i = 0; i < numBuckets; i++){
+        for(auto t: bucketList[i]){
+            temp.push_back(t);
+        }
+    }// got all the values in a temp vector
+    numBuckets = x;
+    Clear();
+    bucketList.resize(x);
+    for(int i = 0; i < temp.size(); i++){
+        Insert(temp[i]);
+    }
+    temp.clear();
+    return;
+    
 }
 
 #endif
